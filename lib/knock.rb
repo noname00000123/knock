@@ -1,4 +1,11 @@
-require "knock/engine"
+require "knock/engine" if defined? Rails
+
+require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/numeric/time'
+require 'active_support/duration'
+require 'active_support/core_ext/string/filters'
+
+NotAuthorizedError = Class.new(StandardError)
 
 module Knock
   mattr_accessor :token_lifetime
@@ -11,13 +18,13 @@ module Knock
   self.token_signature_algorithm = 'HS256'
 
   mattr_accessor :token_secret_signature_key
-  self.token_secret_signature_key = -> { Rails.application.secrets.secret_key_base }
+  self.token_secret_signature_key = -> { ENV['SECRET_KEY_BASE'] }
 
   mattr_accessor :token_public_key
   self.token_public_key = nil
 
   mattr_accessor :not_found_exception_class_name
-  self.not_found_exception_class_name = 'ActiveRecord::RecordNotFound'
+  self.not_found_exception_class_name = 'NotAuthorizedError'
 
   def self.not_found_exception_class
     not_found_exception_class_name.to_s.constantize
