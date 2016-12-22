@@ -1,13 +1,22 @@
-require "knock/engine" if defined? Rails
+$LOAD_PATH.push File.expand_path('../app', __dir__)
+
+require 'knock/engine' if defined? Rails
 
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/duration'
 require 'active_support/core_ext/string/filters'
+require 'active_support/dependencies/autoload'
 
 NotAuthorizedError = Class.new(StandardError)
 
 module Knock
+  extend ActiveSupport::Autoload
+
+  eager_autoload do
+    autoload :AuthToken, 'model/knock/auth_token'
+  end
+
   mattr_accessor :token_lifetime
   self.token_lifetime = 1.day
 
