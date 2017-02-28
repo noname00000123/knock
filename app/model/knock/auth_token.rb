@@ -5,28 +5,29 @@ module Knock
     attr_reader :token
     attr_reader :payload
 
-    def initialize payload: {}, token: nil, verify_options: {}
+    def initialize(payload: {}, token: nil, verify_options: {})
       if token.present?
-        @payload, _ = JWT.decode token, decode_key, true, options.merge(verify_options)
+        @payload, _ = JWT.decode(token, decode_key, true, options.merge(verify_options))
         @token = token
       else
         @payload = claims.merge(payload)
-        @token = JWT.encode @payload,
-          secret_key,
-          Knock.token_signature_algorithm
+        @token = JWT.encode(@payload, secret_key, Knock.token_signature_algorithm)
       end
     end
 
-    def entity_for entity_class
-      if entity_class.respond_to? :from_token_payload
-        entity_class.from_token_payload @payload
+    # @param [Class] entity_class
+    # @param [Class] context
+    # @return [Object, nil]
+    def entity_for(entity_class, context = nil)
+      if entity_class.respond_to?(:from_token_payload)
+        entity_class.from_token_payload(@payload, context)
       else
-        entity_class.find @payload['sub']
+        entity_class.find(@payload['sub'])
       end
     end
 
     def to_json options = {}
-      {jwt: @token}.to_json
+      { jwt: @token }.to_json
     end
 
   private
@@ -39,9 +40,7 @@ module Knock
     end
 
     def options
-      verify_claims.merge({
-        algorithm: Knock.token_signature_algorithm
-      })
+      verify_claims.merge(algorithm: Knock.token_signature_algorithm)
     end
 
     def claims
