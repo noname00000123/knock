@@ -17,23 +17,19 @@ module Knock
 
   NotAuthorizedError = Class.new(StandardError)
 
-  mattr_accessor :token_lifetime
-  self.token_lifetime = 1.day
-
-  mattr_accessor :token_audience
-  self.token_audience = nil
-
-  mattr_accessor :token_signature_algorithm
-  self.token_signature_algorithm = 'HS256'
-
-  mattr_accessor :token_secret_signature_key
-  self.token_secret_signature_key = -> { ENV['SECRET_KEY_BASE'] }
-
-  mattr_accessor :token_public_key
-  self.token_public_key = nil
-
-  mattr_accessor :not_found_exception_class_name
-  self.not_found_exception_class_name = 'Knock::NotAuthorizedError'
+  # @see https://tools.ietf.org/html/rfc7519#section-4.1.4 OAuth JSON Web Token 4.1.4. "exp" (Expiration Time) Claim
+  # **exp** ... identifies the expiration time on or after which the JWT **MUST
+  # NOT** be accepted for processing. ... the current date/time MUST be before the expiration
+  # date/time listed in the exp claim. **MAY** provide for some small leeway, usually no more than
+  # a few minutes, to account for clock skew. Its value **MUST** be a number containing a
+  # NumericDate value.
+  mattr_accessor(:token_expires_in)               { 1.day }
+  mattr_accessor(:token_leeway)                   { 30.seconds }
+  mattr_accessor(:token_audience)                 { nil }
+  mattr_accessor(:token_signature_algorithm)      { 'HS256' }
+  mattr_accessor(:token_secret_signature_key)     { -> { ENV['SECRET_KEY_BASE'] } }
+  mattr_accessor(:token_public_key)               { nil }
+  mattr_accessor(:not_found_exception_class_name) { 'Knock::NotAuthorizedError' }
 
   def self.not_found_exception_class
     not_found_exception_class_name.to_s.constantize

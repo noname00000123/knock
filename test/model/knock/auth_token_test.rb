@@ -56,8 +56,8 @@ module Knock
       end
     end
 
-    test "does not validate expiration claim with a nil token_lifetime" do
-      Knock.token_lifetime = nil
+    test "does not validate expiration claim with a nil token_expires_in" do
+      Knock.token_expires_in = nil
 
       token = AuthToken.new(payload: {sub: 'foo'}).token
       Timecop.travel(10.years.from_now) do
@@ -108,7 +108,7 @@ module Knock
     end
 
     test "Knock::AuthToken has all payloads" do
-      Knock.token_lifetime = 7.days
+      Knock.token_expires_in = 7.days
       payload = Knock::AuthToken.new(payload: { sub: 'foo' }).payload
       assert payload.has_key?(:sub)
       assert payload.has_key?(:exp)
